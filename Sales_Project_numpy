@@ -1,0 +1,41 @@
+import numpy as np
+sales = np.load("daily_retail_sales.npy")
+        #Data Checking
+print(sales.shape)
+print(sales.ndim)
+print(sales.size)
+print(sales.dtype)
+
+        #Invalid Values Checking and data Cleaning
+print(np.isnan(sales).sum())
+
+mean_sale = np.nanmean(sales, axis= 0)
+filled_sales = np.where(np.isnan(sales), mean_sale, sales)
+print(filled_sales)
+
+clean_sales = filled_sales[np.all(filled_sales >=0, axis=1)]
+print(clean_sales)
+
+        # Outlier Handling
+median = np.median(clean_sales, axis= 0)
+mad = np.median(np.abs(clean_sales - median), axis= 0)
+mad_safe = np.where(mad==0, 1, mad)
+z_score = (0.6745*(clean_sales-median))/mad_safe
+
+cleaned_sales= clean_sales[np.all(np.abs(z_score)<3.5 ,axis =1) ]
+print(cleaned_sales)
+np.save("clean_sales.npy", clean_sales)
+        #Business Matrics
+total_sales_product = cleaned_sales.sum(axis= 0)
+print(total_sales_product)
+average_product = cleaned_sales.mean(axis=0)
+print(average_product)
+best_product = np.argmax(average_product)
+print("the best performing product index is: ", best_product)
+
+        # normalization
+min_value = cleaned_sales.min(axis= 0)
+max_value = cleaned_sales.max(axis = 0)
+
+normalization = (cleaned_sales - min_value)/(max_value - min_value)
+print(normalization)
